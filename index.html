@@ -6,32 +6,39 @@
 <title>재고 관리 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; word-break: keep-all; }
   body {
     font-family: -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
     background: #f5f7fa;
     color: #1a202c;
     line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
   }
   .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -8px; padding: 0 8px; }
+  .table-wrap::-webkit-scrollbar { height: 6px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
   header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 32px;
+    padding: 28px 24px;
     border-radius: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     box-shadow: 0 10px 30px rgba(102,126,234,0.3);
-    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: flex-start;
   }
-  header h1 { font-size: 28px; margin-bottom: 8px; }
-  header .subtitle { opacity: 0.9; font-size: 14px; }
+  header .head-text { flex: 1; min-width: 0; }
+  header h1 { font-size: 24px; margin-bottom: 6px; line-height: 1.3; }
+  header .subtitle { opacity: 0.9; font-size: 13px; }
   .header-actions {
-    position: absolute;
-    top: 24px;
-    right: 24px;
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
   }
   .last-update {
     background: rgba(255,255,255,0.15);
@@ -163,14 +170,18 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    min-width: 720px;
   }
   thead { background: #f8fafc; }
   th, td {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
   }
   th { font-weight: 600; color: #475569; font-size: 12px; }
+  td.product-name { white-space: normal; min-width: 180px; word-break: keep-all; }
+  td.note-cell { white-space: normal; min-width: 140px; word-break: keep-all; }
   tbody tr:hover { background: #f8fafc; }
   .alert-row { background: #fef2f2 !important; }
   .alert-row:hover { background: #fee2e2 !important; }
@@ -228,7 +239,44 @@
   .urgency-fill.mid { background: #f59e0b; }
   .urgency-fill.low { background: #10b981; }
   .legend { font-size: 12px; color: #64748b; margin-top: 12px; line-height: 1.7; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ===== 모바일 최적화 ===== */
+  @media (max-width: 768px) {
+    .container { padding: 12px; }
+    header { padding: 20px 18px; border-radius: 12px; margin-bottom: 14px; }
+    header h1 { font-size: 19px; }
+    header .subtitle { font-size: 12px; }
+    .header-actions { width: 100%; justify-content: space-between; }
+    .last-update { font-size: 11px; padding: 5px 10px; }
+    .refresh-btn { padding: 6px 12px; font-size: 12px; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat-card { padding: 14px 16px; border-radius: 10px; }
+    .stat-card .label { font-size: 11px; margin-bottom: 4px; }
+    .stat-card .value { font-size: 24px; }
+    .stat-card .detail { font-size: 10px; }
+    .tabs { padding: 4px; gap: 2px; margin-bottom: 14px; }
+    .tab { padding: 8px 12px; font-size: 12px; }
+    .section { padding: 16px 14px; border-radius: 10px; margin-bottom: 14px; }
+    .section h2 { font-size: 15px; margin-bottom: 12px; }
+    .section p { font-size: 12px !important; }
+    table { font-size: 12px; min-width: 640px; }
+    th, td { padding: 8px 10px; }
+    td.product-name { min-width: 140px; font-size: 12px; }
+    .brand-tag { font-size: 9px; padding: 2px 5px; }
+    .badge { font-size: 10px; padding: 2px 7px; }
+    .urgency-bar { width: 40px; }
+    .filters { gap: 8px; }
+    .filters select, .filters input { font-size: 12px; padding: 7px 10px; flex: 1 1 calc(50% - 4px); min-width: 0; }
+    input[type="text"] { flex: 1 1 100% !important; }
+    .chart-container { height: 280px; padding: 14px; }
+    .legend { font-size: 11px; padding: 12px; background: white; border-radius: 10px; }
+  }
+  @media (max-width: 420px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .tab { padding: 7px 10px; font-size: 11px; }
+    .stat-card .value { font-size: 22px; }
+  }
   .empty-state { text-align: center; color: #94a3b8; padding: 24px; }
   .setup-guide {
     background: #fffbeb;
@@ -258,8 +306,10 @@
 
 <div class="container">
   <header>
-    <h1>📦 자사 PB 재고 관리 대시보드</h1>
-    <div class="subtitle">건강기능식품 · 시오레 화장품 · 매 페이지 로드 시 자동 새로고침</div>
+    <div class="head-text">
+      <h1>📦 자사 PB 재고 관리 대시보드</h1>
+      <div class="subtitle">건강기능식품 · 시오레 화장품 · 자동 새로고침</div>
+    </div>
     <div class="header-actions">
       <span class="last-update" id="lastUpdate">⏱ 불러오는 중...</span>
       <button class="refresh-btn" id="refreshBtn">🔄 새로고침</button>
@@ -284,7 +334,7 @@
       <p style="font-size:13px;color:#64748b;margin-bottom:16px;">
         현재 발주가 없거나, 발주 입고 전에 재고가 소진되는 제품입니다. 관리등급 기준 리드타임(A: 150일, B: 120일, C: 100일)을 적용했습니다.
       </p>
-      <table>
+      <div class="table-wrap"><table>
         <thead>
           <tr>
             <th>브랜드</th><th>품목명</th><th class="num">현재고</th>
@@ -292,7 +342,7 @@
           </tr>
         </thead>
         <tbody id="urgentTable"></tbody>
-      </table>
+      </table></div>
     </div>
 
     <div class="section">
@@ -300,7 +350,7 @@
       <p style="font-size:13px;color:#64748b;margin-bottom:16px;">
         리드타임 내에 발주가 필요한 제품입니다 (소진 예상일이 리드타임 + 30일 이내).
       </p>
-      <table>
+      <div class="table-wrap"><table>
         <thead>
           <tr>
             <th>브랜드</th><th>품목명</th><th class="num">현재고</th>
@@ -308,7 +358,7 @@
           </tr>
         </thead>
         <tbody id="watchTable"></tbody>
-      </table>
+      </table></div>
     </div>
   </div>
 
@@ -316,30 +366,30 @@
   <div class="panel" id="expiry">
     <div class="section">
       <h2>🔴 유통기한 6개월 이내 <span class="badge badge-danger" id="exp6Count">0건</span></h2>
-      <table>
+      <div class="table-wrap"><table>
         <thead>
           <tr><th>브랜드</th><th>품목명</th><th class="num">현재고</th><th>유통기한</th><th class="num">잔여(개월)</th><th>비고</th></tr>
         </thead>
         <tbody id="exp6Table"></tbody>
-      </table>
+      </table></div>
     </div>
     <div class="section">
       <h2>🟠 유통기한 6~9개월 <span class="badge badge-warning" id="exp9Count">0건</span></h2>
-      <table>
+      <div class="table-wrap"><table>
         <thead>
           <tr><th>브랜드</th><th>품목명</th><th class="num">현재고</th><th>유통기한</th><th class="num">잔여(개월)</th></tr>
         </thead>
         <tbody id="exp9Table"></tbody>
-      </table>
+      </table></div>
     </div>
     <div class="section">
       <h2>🟡 유통기한 9~12개월 <span class="badge badge-info" id="exp12Count">0건</span></h2>
-      <table>
+      <div class="table-wrap"><table>
         <thead>
           <tr><th>브랜드</th><th>품목명</th><th class="num">현재고</th><th>유통기한</th><th class="num">잔여(개월)</th></tr>
         </thead>
         <tbody id="exp12Table"></tbody>
-      </table>
+      </table></div>
     </div>
   </div>
 
@@ -366,7 +416,7 @@
           <option value="ok">✅ 정상</option>
         </select>
       </div>
-      <table>
+      <div class="table-wrap"><table>
         <thead>
           <tr>
             <th>브랜드</th><th>품목명</th><th class="num">현재고</th>
@@ -375,7 +425,7 @@
           </tr>
         </thead>
         <tbody id="allTable"></tbody>
-      </table>
+      </table></div>
     </div>
   </div>
 
@@ -648,7 +698,7 @@ function render() {
     <td class="num">${fmtNum(p.stock)}</td>
     <td>${p.expiry}</td>
     <td class="num">${p.expiryMonths.toFixed(1)}</td>
-    ${cls === 'alert-row' ? `<td>${p.note || ''}</td>` : ''}
+    ${cls === 'alert-row' ? `<td class="note-cell">${p.note || ''}</td>` : ''}
   </tr>`;
   document.getElementById('exp6Count').textContent = `${exp6.length}건`;
   document.getElementById('exp6Table').innerHTML = exp6.sort((a,b)=>a.expiryMonths-b.expiryMonths).map(p => expRow(p, 'alert-row')).join('') || '<tr><td colspan="6" class="empty-state">해당 없음</td></tr>';
